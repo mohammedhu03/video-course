@@ -3,10 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>فيديو تعليمي محمي</title>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <style>
-    body { margin: 0; background: black; }
-    #video-container { position: relative; width: 80%; margin: 50px auto; }
-    video { width: 100%; height: auto; }
+    body {
+      margin: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial;
+    }
+    .video-wrapper {
+      width: 80%;
+      margin: 50px auto;
+      position: relative;
+    }
+    .plyr {
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .watermark {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+      z-index: 10;
+    }
     #black-screen {
       display: none;
       position: absolute;
@@ -15,42 +36,51 @@
       background-color: black;
       z-index: 999;
     }
-    .watermark {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      color: white;
-      font-size: 14px;
-      opacity: 0.3;
-      z-index: 5;
-    }
   </style>
 </head>
 <body>
 
-<div id="video-container">
-  <video id="video" controls>
-    <source src="video.mp4" type="video/mp4">
-    المتصفح لا يدعم تشغيل الفيديو.
-  </video>
+<div class="video-wrapper">
+  <div class="watermark">المستخدم: Mohammed</div>
   <div id="black-screen"></div>
-  <div class="watermark">اسم المستخدم: Mohammed</div>
+  <video id="player" playsinline controls>
+    <source src="video.mp4" type="video/mp4" />
+  </video>
 </div>
 
+<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 <script>
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  document.onkeydown = function(e) {
-    if (e.ctrlKey && (e.key === "u" || e.key === "s" || e.key === "p")) return false;
-  };
+  const player = new Plyr('#player');
+
+  // منع الزر اليمين
+  document.addEventListener('contextmenu', event => event.preventDefault());
+
+  // منع F12 و Ctrl+U
+document.onkeydown = function (e) {
+  // F12 أو Ctrl+U أو Ctrl+S أو Ctrl+P أو Shift+S
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && (e.key.toLowerCase() === "u" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "p")) ||
+    (e.shiftKey && e.key.toLowerCase() === "s")
+  ) {
+    e.preventDefault();
+    return false;
+  }
+};
+
+
+  // كشف زر PrintScreen
   window.addEventListener("keyup", function (e) {
     if (e.key === "PrintScreen") {
-      let black = document.getElementById("black-screen");
+      const black = document.getElementById("black-screen");
       black.style.display = "block";
       setTimeout(() => {
         black.style.display = "none";
       }, 3000);
     }
   });
+
+  // كشف أدوات المطور تلقائيًا (ارتفاع النافذة)
   setInterval(() => {
     if (window.outerHeight - window.innerHeight > 200) {
       document.getElementById("black-screen").style.display = "block";
