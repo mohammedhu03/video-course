@@ -52,43 +52,67 @@
 <script>
   const player = new Plyr('#player');
 
-  // منع الزر اليمين
-  document.addEventListener('contextmenu', event => event.preventDefault());
+  const blackScreen = document.getElementById("black-screen");
 
-  // منع F12 و Ctrl+U
-document.onkeydown = function (e) {
-  // F12 أو Ctrl+U أو Ctrl+S أو Ctrl+P أو Shift+S
-  if (
-    e.key === "F12" ||
-    (e.ctrlKey && (e.key.toLowerCase() === "u" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "p")) ||
-    (e.shiftKey && e.key.toLowerCase() === "s")
-  ) {
-    e.preventDefault();
-    return false;
-  }
-};
-
-
-  // كشف زر PrintScreen
-  window.addEventListener("keyup", function (e) {
-    if (e.key === "PrintScreen") {
-      const black = document.getElementById("black-screen");
-      black.style.display = "block";
-      setTimeout(() => {
-        black.style.display = "none";
-      }, 3000);
+  // 🔐 مسموح فقط: Space، F، Escape
+  document.addEventListener("keydown", function (e) {
+    const allowedKeys = [" ", "f", "F", "Escape"];
+    if (!allowedKeys.includes(e.key)) {
+      e.preventDefault();
+      return false;
     }
   });
 
-  // كشف أدوات المطور تلقائيًا (ارتفاع النافذة)
-  setInterval(() => {
-    if (window.outerHeight - window.innerHeight > 200) {
-      document.getElementById("black-screen").style.display = "block";
+  // 🧠 تشغيل فقط في وضع Fullscreen
+  function handleFullscreen() {
+    if (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    ) {
+      blackScreen.style.display = "none";
+      player.play();
     } else {
-      document.getElementById("black-screen").style.display = "none";
+      blackScreen.style.display = "block";
+      player.pause();
     }
-  }, 1000);
-</script>
+  }
 
+  // تابع حالة الدخول والخروج من fullscreen
+  document.addEventListener("fullscreenchange", handleFullscreen);
+  document.addEventListener("webkitfullscreenchange", handleFullscreen);
+  document.addEventListener("mozfullscreenchange", handleFullscreen);
+  document.addEventListener("msfullscreenchange", handleFullscreen);
+
+  // أول ما تفتح الصفحة يكون الفيديو غير مشغّل
+  window.onload = () => {
+    blackScreen.style.display = "block";
+    player.pause();
+  };
+
+  // منع الزر اليمين وF12 وCtrl+U
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.onkeydown = function (e) {
+    if (
+      e.key === "F12" ||
+      (e.ctrlKey && (e.key.toLowerCase() === "u" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "p")) ||
+      (e.shiftKey && e.key.toLowerCase() === "s")
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  };
+
+  // كشف PrintScreen
+  window.addEventListener("keyup", function (e) {
+    if (e.key === "PrintScreen") {
+      blackScreen.style.display = "block";
+      setTimeout(() => {
+        handleFullscreen(); // نرجّع الوضع حسب حالة fullscreen
+      }, 3000);
+    }
+  });
+</script>
 </body>
 </html>
