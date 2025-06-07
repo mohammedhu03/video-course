@@ -29,16 +29,15 @@
       z-index: 10;
     }
     #black-screen {
-      display: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
       background-color: black;
       z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
     }
     #watch-now {
       padding: 12px 24px;
@@ -73,15 +72,33 @@
   const blackScreen = document.getElementById("black-screen");
   const watchNowButton = document.getElementById("watch-now");
 
-  // تشغيل فقط في وضع Fullscreen
-  function handleFullscreen() {
-    const inFullscreen =
+  // ✅ عند الضغط على زر "شاهد الآن"
+  watchNowButton.addEventListener("click", () => {
+    const doc = document.documentElement;
+    if (doc.requestFullscreen) {
+      doc.requestFullscreen();
+    } else if (doc.webkitRequestFullscreen) {
+      doc.webkitRequestFullscreen();
+    } else if (doc.mozRequestFullScreen) {
+      doc.mozRequestFullScreen();
+    } else if (doc.msRequestFullscreen) {
+      doc.msRequestFullscreen();
+    }
+  });
+
+  // ✅ دالة التحقق من وضع Fullscreen
+  function isFullscreen() {
+    return (
       document.fullscreenElement ||
       document.webkitFullscreenElement ||
       document.mozFullScreenElement ||
-      document.msFullscreenElement;
+      document.msFullscreenElement
+    );
+  }
 
-    if (inFullscreen) {
+  // ✅ دالة تحديث الحالة (تشغيل أو توقيف الفيديو)
+  function updateState() {
+    if (isFullscreen()) {
       blackScreen.style.display = "none";
       player.play();
     } else {
@@ -90,46 +107,24 @@
     }
   }
 
-  // منع التشغيل اليدوي خارج Fullscreen
-  player.on('play', () => {
-    const inFullscreen =
-      document.fullscreenElement ||
-      document.webkitFullscreenElement ||
-      document.mozFullScreenElement ||
-      document.msFullscreenElement;
-
-    if (!inFullscreen) {
-      blackScreen.style.display = "flex";
-      player.pause();
-    }
-  });
-
-  // دخول fullscreen عند الضغط على "شاهد الآن"
-  watchNowButton.addEventListener("click", () => {
-    const videoContainer = document.documentElement;
-    if (videoContainer.requestFullscreen) {
-      videoContainer.requestFullscreen();
-    } else if (videoContainer.webkitRequestFullscreen) {
-      videoContainer.webkitRequestFullscreen();
-    } else if (videoContainer.mozRequestFullScreen) {
-      videoContainer.mozRequestFullScreen();
-    } else if (videoContainer.msRequestFullscreen) {
-      videoContainer.msRequestFullscreen();
-    }
-  });
-
-  // مراقبة حالة Fullscreen
-  ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(event =>
-    document.addEventListener(event, handleFullscreen)
-  );
-
-  // عند تحميل الصفحة
+  // ✅ عند فتح الصفحة
   window.onload = () => {
-    blackScreen.style.display = "flex";
-    player.pause();
+    updateState(); // نتحقق من الوضع الحالي
   };
 
-  // السماح فقط بـ Space، F، Esc
+  // ✅ إذا المستخدم حاول يشغل الفيديو خارج fullscreen
+  player.on('play', () => {
+    if (!isFullscreen()) {
+      updateState();
+    }
+  });
+
+  // ✅ تحديث الحالة عند تغيير وضع الشاشة
+  ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(event =>
+    document.addEventListener(event, updateState)
+  );
+
+  // ✅ السماح فقط بمفاتيح Space, F, Esc
   document.addEventListener("keydown", function (e) {
     const allowedKeys = [" ", "f", "F", "Escape"];
     if (!allowedKeys.includes(e.key)) {
@@ -137,7 +132,7 @@
     }
   });
 
-  // حماية إضافية
+  // ✅ حماية إضافية
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener("keydown", function (e) {
     if (
@@ -149,11 +144,11 @@
     }
   });
 
-  // منع PrintScreen
+  // ✅ كشف PrintScreen
   window.addEventListener("keyup", function (e) {
     if (e.key === "PrintScreen") {
       blackScreen.style.display = "flex";
-      setTimeout(() => handleFullscreen(), 3000);
+      setTimeout(() => updateState(), 3000);
     }
   });
 </script>
