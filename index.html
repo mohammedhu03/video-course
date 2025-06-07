@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>فيديو  محمي</title>
+  <title>فيديو محمي</title>
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <style>
     body {
@@ -51,26 +51,31 @@
 <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 <script>
   const player = new Plyr('#player');
-
   const blackScreen = document.getElementById("black-screen");
 
-  // 🔐 مسموح فقط: Space، F، Escape
-  document.addEventListener("keydown", function (e) {
-    const allowedKeys = [" ", "f", "F", "Escape"];
-    if (!allowedKeys.includes(e.key)) {
-      e.preventDefault();
-      return false;
-    }
-  });
-
-  // 🧠 تشغيل فقط في وضع Fullscreen
-  function handleFullscreen() {
-    if (
+  // 🛑 امنع التشغيل اليدوي خارج fullscreen
+  player.on('play', () => {
+    const inFullscreen =
       document.fullscreenElement ||
       document.webkitFullscreenElement ||
       document.mozFullScreenElement ||
-      document.msFullscreenElement
-    ) {
+      document.msFullscreenElement;
+
+    if (!inFullscreen) {
+      blackScreen.style.display = "block";
+      player.pause();
+    }
+  });
+
+  // 🧠 الفيديو يعمل فقط في وضع Fullscreen
+  function handleFullscreen() {
+    const inFullscreen =
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement;
+
+    if (inFullscreen) {
       blackScreen.style.display = "none";
       player.play();
     } else {
@@ -79,40 +84,46 @@
     }
   }
 
-  // تابع حالة الدخول والخروج من fullscreen
-  document.addEventListener("fullscreenchange", handleFullscreen);
-  document.addEventListener("webkitfullscreenchange", handleFullscreen);
-  document.addEventListener("mozfullscreenchange", handleFullscreen);
-  document.addEventListener("msfullscreenchange", handleFullscreen);
+  // متابعة حالة fullscreen
+  ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(event =>
+    document.addEventListener(event, handleFullscreen)
+  );
 
-  // أول ما تفتح الصفحة يكون الفيديو غير مشغّل
+  // عند تحميل الصفحة
   window.onload = () => {
     blackScreen.style.display = "block";
     player.pause();
   };
 
-  // منع الزر اليمين وF12 وCtrl+U
+  // السماح فقط بـ Space، F، Esc
+  document.addEventListener("keydown", function (e) {
+    const allowedKeys = [" ", "f", "F", "Escape"];
+    if (!allowedKeys.includes(e.key)) {
+      e.preventDefault();
+    }
+  });
+
+  // 🔒 حماية إضافية: الزر اليمين وF12 و Ctrl+U و PrintScreen
   document.addEventListener('contextmenu', e => e.preventDefault());
-  document.onkeydown = function (e) {
+
+  document.addEventListener("keydown", function (e) {
     if (
       e.key === "F12" ||
-      (e.ctrlKey && (e.key.toLowerCase() === "u" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "p")) ||
+      (e.ctrlKey && ["u", "s", "p"].includes(e.key.toLowerCase())) ||
       (e.shiftKey && e.key.toLowerCase() === "s")
     ) {
       e.preventDefault();
-      return false;
     }
-  };
+  });
 
   // كشف PrintScreen
   window.addEventListener("keyup", function (e) {
     if (e.key === "PrintScreen") {
       blackScreen.style.display = "block";
-      setTimeout(() => {
-        handleFullscreen(); // نرجّع الوضع حسب حالة fullscreen
-      }, 3000);
+      setTimeout(() => handleFullscreen(), 3000);
     }
   });
 </script>
+
 </body>
 </html>
