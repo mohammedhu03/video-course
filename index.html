@@ -35,6 +35,23 @@
       width: 100%; height: 100%;
       background-color: black;
       z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    #watch-now {
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #1db954;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    #watch-now:hover {
+      background-color: #169c45;
     }
   </style>
 </head>
@@ -42,7 +59,9 @@
 
 <div class="video-wrapper">
   <div class="watermark">المستخدم: Mohammed</div>
-  <div id="black-screen"></div>
+  <div id="black-screen">
+    <button id="watch-now">شاهد الآن</button>
+  </div>
   <video id="player" playsinline controls>
     <source src="video.mp4" type="video/mp4" />
   </video>
@@ -52,22 +71,9 @@
 <script>
   const player = new Plyr('#player');
   const blackScreen = document.getElementById("black-screen");
+  const watchNowButton = document.getElementById("watch-now");
 
-  // 🛑 امنع التشغيل اليدوي خارج fullscreen
-  player.on('play', () => {
-    const inFullscreen =
-      document.fullscreenElement ||
-      document.webkitFullscreenElement ||
-      document.mozFullScreenElement ||
-      document.msFullscreenElement;
-
-    if (!inFullscreen) {
-      blackScreen.style.display = "block";
-      player.pause();
-    }
-  });
-
-  // 🧠 الفيديو يعمل فقط في وضع Fullscreen
+  // تشغيل فقط في وضع Fullscreen
   function handleFullscreen() {
     const inFullscreen =
       document.fullscreenElement ||
@@ -79,19 +85,47 @@
       blackScreen.style.display = "none";
       player.play();
     } else {
-      blackScreen.style.display = "block";
+      blackScreen.style.display = "flex";
       player.pause();
     }
   }
 
-  // متابعة حالة fullscreen
+  // منع التشغيل اليدوي خارج Fullscreen
+  player.on('play', () => {
+    const inFullscreen =
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement;
+
+    if (!inFullscreen) {
+      blackScreen.style.display = "flex";
+      player.pause();
+    }
+  });
+
+  // دخول fullscreen عند الضغط على "شاهد الآن"
+  watchNowButton.addEventListener("click", () => {
+    const videoContainer = document.documentElement;
+    if (videoContainer.requestFullscreen) {
+      videoContainer.requestFullscreen();
+    } else if (videoContainer.webkitRequestFullscreen) {
+      videoContainer.webkitRequestFullscreen();
+    } else if (videoContainer.mozRequestFullScreen) {
+      videoContainer.mozRequestFullScreen();
+    } else if (videoContainer.msRequestFullscreen) {
+      videoContainer.msRequestFullscreen();
+    }
+  });
+
+  // مراقبة حالة Fullscreen
   ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(event =>
     document.addEventListener(event, handleFullscreen)
   );
 
   // عند تحميل الصفحة
   window.onload = () => {
-    blackScreen.style.display = "block";
+    blackScreen.style.display = "flex";
     player.pause();
   };
 
@@ -103,9 +137,8 @@
     }
   });
 
-  // 🔒 حماية إضافية: الزر اليمين وF12 و Ctrl+U و PrintScreen
+  // حماية إضافية
   document.addEventListener('contextmenu', e => e.preventDefault());
-
   document.addEventListener("keydown", function (e) {
     if (
       e.key === "F12" ||
@@ -116,10 +149,10 @@
     }
   });
 
-  // كشف PrintScreen
+  // منع PrintScreen
   window.addEventListener("keyup", function (e) {
     if (e.key === "PrintScreen") {
-      blackScreen.style.display = "block";
+      blackScreen.style.display = "flex";
       setTimeout(() => handleFullscreen(), 3000);
     }
   });
