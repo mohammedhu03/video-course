@@ -130,9 +130,11 @@ watchNowButton.addEventListener("click", () => {
   }
 
   // ✅ عند فتح الصفحة
-  window.onload = () => {
-    updateState(); // نتحقق من الوضع الحالي
-  };
+window.onload = () => {
+  blackScreen.style.display = "none";
+  player.pause(); // نوقف الفيديو بالبداية، بس نعرضه بدون حجب
+};
+
 
   // ✅ إذا المستخدم حاول يشغل الفيديو خارج fullscreen
   player.on('play', () => {
