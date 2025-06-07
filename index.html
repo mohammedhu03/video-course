@@ -73,18 +73,40 @@
   const watchNowButton = document.getElementById("watch-now");
 
   // ✅ عند الضغط على زر "شاهد الآن"
-  watchNowButton.addEventListener("click", () => {
-    const doc = document.documentElement;
-    if (doc.requestFullscreen) {
-      doc.requestFullscreen();
-    } else if (doc.webkitRequestFullscreen) {
-      doc.webkitRequestFullscreen();
-    } else if (doc.mozRequestFullScreen) {
-      doc.mozRequestFullScreen();
-    } else if (doc.msRequestFullscreen) {
-      doc.msRequestFullscreen();
-    }
-  });
+// عند الضغط على زر "شاهد الآن"
+watchNowButton.addEventListener("click", () => {
+  const doc = document.documentElement;
+
+  function enterFullscreenAndPlay() {
+    // بعد دخول fullscreen، نعيد التحقق ونشغّل الفيديو
+    setTimeout(() => {
+      if (isFullscreen()) {
+        blackScreen.style.display = "none";
+        player.play();
+      } else {
+        blackScreen.style.display = "flex";
+        player.pause();
+      }
+    }, 500); // ننتظر قليلاً حتى يتفاعل المتصفح
+  }
+
+  // طلب الدخول إلى fullscreen
+  if (doc.requestFullscreen) {
+    doc.requestFullscreen().then(enterFullscreenAndPlay).catch(() => {
+      blackScreen.style.display = "flex";
+    });
+  } else if (doc.webkitRequestFullscreen) {
+    doc.webkitRequestFullscreen();
+    enterFullscreenAndPlay();
+  } else if (doc.mozRequestFullScreen) {
+    doc.mozRequestFullScreen();
+    enterFullscreenAndPlay();
+  } else if (doc.msRequestFullscreen) {
+    doc.msRequestFullscreen();
+    enterFullscreenAndPlay();
+  }
+});
+
 
   // ✅ دالة التحقق من وضع Fullscreen
   function isFullscreen() {
